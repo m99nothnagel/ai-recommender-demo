@@ -10,10 +10,24 @@ const state = {
   labels: ['Startup Stage','Function / Use Case','Integration Effort','Budget Sensitivity','Data & Compliance']
 };
 
+// replace the existing loadTools() function with this one
 async function loadTools(){
-  const res = await fetch('data/tools.json');
-  state.tools = await res.json();
+  try {
+    const res = await fetch('data/tools.json');
+    if (!res.ok) throw new Error('tools.json fetch not ok: ' + res.status);
+    state.tools = await res.json();
+    if (!Array.isArray(state.tools) || state.tools.length === 0) throw new Error('tools.json empty');
+  } catch (err) {
+    console.warn('Could not load data/tools.json — falling back to embedded list. Error:', err);
+    // fallback small tool list (safe demo data)
+    state.tools = [
+      {"tool_id":"chatgpt","name":"ChatGPT (OpenAI)","url":"https://chat.openai.com/","primary_function":["General AI Assistant","Content"],"complexity":"low","cost_category":"freemium","scalability":"high","impact":"high","compliance":[],"description":"General-purpose LLM assistant for research, content, and prototyping.","tags":["llm","assistant","content"]},
+      {"tool_id":"notion","name":"Notion AI","url":"https://www.notion.so/product/ai","primary_function":["Operations","Knowledge Management"],"complexity":"low","cost_category":"freemium","scalability":"medium","impact":"medium","compliance":["GDPR"],"description":"Knowledge-base and productivity platform with AI features.","tags":["docs","kb","ops"]},
+      {"tool_id":"hubspot","name":"HubSpot","url":"https://www.hubspot.com/","primary_function":["Marketing","Sales"],"complexity":"medium","cost_category":"subscription","scalability":"high","impact":"high","compliance":["GDPR"],"description":"CRM and marketing automation with predictive features.","tags":["crm","marketing","sales"]}
+    ];
+  }
 }
+
 
 function $(id){ return document.getElementById(id); }
 function showView(id){
