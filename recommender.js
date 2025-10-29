@@ -93,21 +93,12 @@ function renderTools(){
   });
 }
 
-// --- Radial drawing & interaction (vanilla JS)
+// --- Radial drawing & interaction (vanilla JS) - STABLE REPLACEMENT
 function drawRadial(){
   const svg = $('radial-svg');
-  svg.innerHTML = '';
-  const { cx, cy, minR, maxR, labels, weights } = state;
+  if (!svg) return;
 
-  // background circle
-  const bg = document.createElementNS('http://www.w3.org/2000/svg','circle');
-  bg.setAttribute('cx',cx); bg.setAttribute('cy',cy); bg.setAttribute('r', maxR+8);
-  bg.setAttribute('fill','#f8fafc'); svg.appendChild(bg);
-
-  // polygon
-  const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
-  poly.setAttribute('fill','#eef2ff'); poly.setAttribute('stroke','#4f46e5'); poly.setAttribute('stroke-width','2');
-  svg.appendChild(poly);
+  const { cx, cy, minR, maxR, labels } = state;
 
   // helper funcs
   const angleFor = (i)=> (Math.PI*2)*(i/5) - Math.PI/2;
@@ -116,52 +107,84 @@ function drawRadial(){
     return { x: cx + r*Math.cos(a), y: cy + r*Math.sin(a) };
   };
 
-  function update(){
-    poly.setAttribute('points', weights.map((w,i)=> {
+  // clear previous pointer handlers to avoid duplicates
+  svg.onpointermove = null;
+  window.onpointerup = null;
+
+  // single update function that rebuilds the visual (no duplicates)
+  function updateVisual(){
+    // clear children cleanly
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    // background circle
+    const bg = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    bg.setAttribute('cx',cx); bg.setAttribute('cy',cy); bg.setAttribute('r', maxR+8);
+    bg.setAttribute('fill','#f8fafc'); svg.appendChild(bg);
+
+    // polygon
+    const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    poly.setAttribute('fill','#eef2ff'); poly.setAttribute('stroke','#4f46e5'); poly.setAttribute('stroke-width','2');
+    const pts = state.weights.map((w,i)=> {
       const p = pointFor(i,w); return `${p.x},${p.y}`;
-    }).join(' '));
-    // remove existing handles
-    svg.querySelectorAll('.handle').forEach(n=>n.remove());
-    // add handles/text
-    weights.forEach((w,i)=>{
+    }).join(' ');
+    poly.setAttribute('points', pts);
+    svg.appendChild(poly);
+
+    // add handles and labels
+    state.weights.forEach((w,i)=>{
       const p = pointFor(i,w);
+
+      // handle circle
       const handle = document.createElementNS('http://www.w3.org/2000/svg','circle');
       handle.setAttribute('cx', p.x); handle.setAttribute('cy', p.y); handle.setAttribute('r', 11);
       handle.setAttribute('fill','#fff'); handle.setAttribute('stroke','#4f46e5'); handle.setAttribute('stroke-width','2');
-      handle.classList.add('handle'); handle.style.cursor='grab';
-      handle.addEventListener('pointerdown', (ev)=> { ev.preventDefault(); state.dragIdx = i; handle.setPointerCapture(ev.pointerId); });
+      handle.style.cursor='grab';
+      handle.dataset.idx = i;
       svg.appendChild(handle);
-      // label
+
+      // label (above)
       const lp = pointFor(i, Math.min(1,w+0.16));
-      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-      text.setAttribute('x', lp.x); text.setAttribute('y', lp.y); text.setAttribute('font-size','12'); text.setAttribute('text-anchor','middle');
-      text.textContent = labels[i];
-      svg.appendChild(text);
+      const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+      label.setAttribute('x', lp.x); label.setAttribute('y', lp.y); label.setAttribute('font-size','12'); label.setAttribute('text-anchor','middle');
+      label.textContent = labels[i];
+      svg.appendChild(label);
+
       // value text
       const vt = document.createElementNS('http://www.w3.org/2000/svg','text');
       vt.setAttribute('x', p.x); vt.setAttribute('y', p.y + 24); vt.setAttribute('font-size','11'); vt.setAttribute('text-anchor','middle');
       vt.setAttribute('fill','#4b5563'); vt.textContent = w.toFixed(2);
       svg.appendChild(vt);
+
+      // pointerdown assigned once per handle -> set drag index
+      handle.addEventListener('pointerdown', function(ev){
+        ev.preventDefault();
+        state.dragIdx = Number(this.dataset.idx);
+        try { this.setPointerCapture(ev.pointerId); } catch(e){}
+      });
     });
   }
 
-  update();
-
-  // pointer move/up handlers on svg parent (document)
-  function onMove(e){
-    if(state.dragIdx===null) return;
+  // pointermove on svg (single assignment)
+  svg.onpointermove = function(e){
+    if (state.dragIdx === null) return;
     const rect = svg.getBoundingClientRect();
     const x = e.clientX - rect.left, y = e.clientY - rect.top;
     const a = angleFor(state.dragIdx);
-    const dx = x - cx, dy = y - cy; const proj = dx*Math.cos(a) + dy*Math.sin(a);
+    const dx = x - cx, dy = y - cy;
+    const proj = dx*Math.cos(a) + dy*Math.sin(a);
     const r = Math.max(minR, Math.min(maxR, proj));
     const w = (r - minR)/(maxR - minR);
     state.weights[state.dragIdx] = Number(w.toFixed(3));
-    update();
-  }
-  function onUp(e){ state.dragIdx = null; }
-  window.addEventListener('pointermove', onMove);
-  window.addEventListener('pointerup', onUp);
+    updateVisual();
+  };
+
+  // pointerup to release
+  window.onpointerup = function(){
+    state.dragIdx = null;
+  };
+
+  // initial draw
+  updateVisual();
 }
 
 // --- Recommendation scoring & checklist
