@@ -94,20 +94,13 @@ function renderTools(){
 }
 
 // --- Radial drawing & interaction (vanilla JS)
+// --- Radial drawing & interaction (vanilla JS) - REPLACEMENT
 function drawRadial(){
   const svg = $('radial-svg');
-  svg.innerHTML = '';
-  const { cx, cy, minR, maxR, labels, weights } = state;
+  // ensure the svg element exists
+  if (!svg) return;
 
-  // background circle
-  const bg = document.createElementNS('http://www.w3.org/2000/svg','circle');
-  bg.setAttribute('cx',cx); bg.setAttribute('cy',cy); bg.setAttribute('r', maxR+8);
-  bg.setAttribute('fill','#f8fafc'); svg.appendChild(bg);
-
-  // polygon
-  const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
-  poly.setAttribute('fill','#eef2ff'); poly.setAttribute('stroke','#4f46e5'); poly.setAttribute('stroke-width','2');
-  svg.appendChild(poly);
+  const { cx, cy, minR, maxR, labels } = state;
 
   // helper funcs
   const angleFor = (i)=> (Math.PI*2)*(i/5) - Math.PI/2;
@@ -116,36 +109,83 @@ function drawRadial(){
     return { x: cx + r*Math.cos(a), y: cy + r*Math.sin(a) };
   };
 
+  // update function: rebuild polygon + handles + texts cleanly
   function update(){
-    poly.setAttribute('points', weights.map((w,i)=> {
+    // clear svg contents (remove previous handles/texts)
+    svg.innerHTML = '';
+
+    // background circle
+    const bg = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    bg.setAttribute('cx',cx); bg.setAttribute('cy',cy); bg.setAttribute('r', maxR+8);
+    bg.setAttribute('fill','#f8fafc'); svg.appendChild(bg);
+
+    // polygon
+    const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    poly.setAttribute('fill','#eef2ff'); poly.setAttribute('stroke','#4f46e5'); poly.setAttribute('stroke-width','2');
+    const pts = state.weights.map((w,i)=> {
       const p = pointFor(i,w); return `${p.x},${p.y}`;
-    }).join(' '));
-    // remove existing handles
-    svg.querySelectorAll('.handle').forEach(n=>n.remove());
-    // add handles/text
-    weights.forEach((w,i)=>{
+    }).join(' ');
+    poly.setAttribute('points', pts);
+    svg.appendChild(poly);
+
+    // create handles and labels
+    state.weights.forEach((w,i)=>{
       const p = pointFor(i,w);
+      // handle circle
       const handle = document.createElementNS('http://www.w3.org/2000/svg','circle');
       handle.setAttribute('cx', p.x); handle.setAttribute('cy', p.y); handle.setAttribute('r', 11);
       handle.setAttribute('fill','#fff'); handle.setAttribute('stroke','#4f46e5'); handle.setAttribute('stroke-width','2');
       handle.classList.add('handle'); handle.style.cursor='grab';
-      handle.addEventListener('pointerdown', (ev)=> { ev.preventDefault(); state.dragIdx = i; handle.setPointerCapture(ev.pointerId); });
+      // store index on DOM element for access in pointerdown
+      handle.dataset.idx = i;
       svg.appendChild(handle);
-      // label
+
+      // label above
       const lp = pointFor(i, Math.min(1,w+0.16));
       const text = document.createElementNS('http://www.w3.org/2000/svg','text');
       text.setAttribute('x', lp.x); text.setAttribute('y', lp.y); text.setAttribute('font-size','12'); text.setAttribute('text-anchor','middle');
       text.textContent = labels[i];
       svg.appendChild(text);
-      // value text
+
+      // value text below
       const vt = document.createElementNS('http://www.w3.org/2000/svg','text');
       vt.setAttribute('x', p.x); vt.setAttribute('y', p.y + 24); vt.setAttribute('font-size','11'); vt.setAttribute('text-anchor','middle');
       vt.setAttribute('fill','#4b5563'); vt.textContent = w.toFixed(2);
       svg.appendChild(vt);
+
+      // pointerdown: set drag index and capture pointer
+      handle.addEventListener('pointerdown', (ev)=> {
+        ev.preventDefault();
+        state.dragIdx = Number(ev.currentTarget.dataset.idx);
+        // capture pointer on svg so we still get events
+        try { ev.currentTarget.setPointerCapture(ev.pointerId); } catch(e){}
+      });
     });
   }
 
+  // pointermove handler assigned to svg (replacing previous one each call)
+  svg.onpointermove = function(e){
+    if (state.dragIdx === null) return;
+    const rect = svg.getBoundingClientRect();
+    const x = e.clientX - rect.left, y = e.clientY - rect.top;
+    const a = angleFor(state.dragIdx);
+    const dx = x - cx, dy = y - cy;
+    const proj = dx*Math.cos(a) + dy*Math.sin(a);
+    const r = Math.max(minR, Math.min(maxR, proj));
+    const w = (r - minR)/(maxR - minR);
+    state.weights[state.dragIdx] = Number(w.toFixed(3));
+    // rebuild visual elements
+    update();
+  };
+
+  // pointerup handler on window to release drag
+  window.onpointerup = function(){
+    state.dragIdx = null;
+  };
+
+  // initial draw
   update();
+}
 
   // pointer move/up handlers on svg parent (document)
   function onMove(e){
