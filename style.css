@@ -1,0 +1,22 @@
+:root { --bg:#f3f4f6; --card:#ffffff; --accent:#2563eb; --muted:#6b7280; }
+*{box-sizing:border-box}
+body{font-family:Inter, Arial, sans-serif;margin:0;background:var(--bg);color:#111}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:#fff;border-bottom:1px solid #e6e7eb}
+.brand{font-weight:700}
+.navlinks{display:flex;gap:8px}
+.nav-btn{background:transparent;border:1px solid transparent;padding:8px 10px;border-radius:6px;cursor:pointer}
+.nav-btn:hover{background:#f1f5f9}
+.container{max-width:1000px;margin:22px auto;padding:10px}
+.view{margin-top:8px}
+.hidden{display:none}
+.card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 6px 20px rgba(2,6,23,0.04);border:1px solid #eef2ff}
+.button{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+.button.secondary{background:#fff;color:var(--accent);border:1px solid #c7ddff}
+.input{padding:8px;border-radius:6px;border:1px solid #e6e7eb;width:200px}
+.small{color:var(--muted);font-size:13px}
+.result-block{margin-top:10px}
+.result-card{background:#fff;padding:10px;border-radius:8px;border:1px solid #eef2ff;margin-bottom:8px;display:flex;justify-content:space-between;gap:12px}
+#radial-wrap{width:460px}
+.tool-link{color:var(--accent);text-decoration:underline}
+.footer{padding:12px 20px;background:#fff;border-top:1px solid #e6e7eb;display:flex;justify-content:space-between;align-items:center}
+label{font-weight:600;font-size:13px;color:#111}
