@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AI Tool Recommender (MVP)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">AI Tool Recommender — MVP</div>
+    <nav class="navlinks">
+      <button id="nav-home" class="nav-btn">Home</button>
+      <button id="nav-tools" class="nav-btn">All Tools</button>
+      <button id="nav-select" class="nav-btn">Select Tool</button>
+      <button id="nav-vendor" class="nav-btn">Vendor</button>
+      <button id="nav-login" class="nav-btn">Login</button>
+    </nav>
+  </header>
+
+  <main id="app" class="container">
+    <!-- Views inserted here -->
+    <section id="view-login" class="view hidden">
+      <h2>Login</h2>
+      <form id="login-form" class="card">
+        <label>Role</label>
+        <div>
+          <label><input type="radio" name="role" value="entrepreneur" checked/> Entrepreneur</label>
+          <label style="margin-left:12px"><input type="radio" name="role" value="vendor"/> Vendor</label>
+        </div>
+        <label style="margin-top:10px">Full name</label>
+        <input id="input-name" class="input" placeholder="e.g. Marsha Nkosi" />
+        <label style="margin-top:10px">Company (optional)</label>
+        <input id="input-company" class="input" placeholder="Company name" />
+        <div style="text-align:right; margin-top:12px">
+          <button type="submit" class="button">Start</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="view-home" class="view hidden">
+      <div class="card">
+        <h2 id="home-welcome">Welcome</h2>
+        <div class="small">Company: <span id="home-company">—</span></div>
+        <div style="margin-top:8px">Points: <strong id="home-points">0</strong></div>
+        <hr/>
+        <h3>How to earn promo codes</h3>
+        <ul>
+          <li>Rate a tool after trying it (>=4 stars earns points).</li>
+          <li>Submit feedback after using a recommended tool — bonus points.</li>
+          <li>Refer colleagues (future feature).</li>
+        </ul>
+      </div>
+      <div style="display:flex; gap:12px; margin-top:14px">
+        <button id="cta-select" class="button">Get Recommendation</button>
+        <button id="cta-tools" class="button secondary">Browse Tools</button>
+      </div>
+    </section>
+
+    <section id="view-tools" class="view hidden">
+      <h2>AI Tools Directory</h2>
+      <div id="tools-list"></div>
+    </section>
+
+    <section id="view-select" class="view hidden">
+      <h2>Tool Selection (5-leg radial)</h2>
+      <div class="card">
+        <div style="display:flex; gap:12px; flex-wrap:wrap">
+          <div>
+            <label>Business function</label><br/>
+            <select id="select-function" class="input">
+              <option>General</option>
+              <option>Marketing</option>
+              <option>Finance</option>
+              <option>Product</option>
+              <option>Operations</option>
+              <option>Legal</option>
+              <option>HR</option>
+            </select>
+            <div style="margin-top:10px">
+              <label>Complexity filter</label>
+              <select id="filter-complexity" class="input">
+                <option value="">Any</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div style="margin-top:10px">
+              <label>Cost filter</label>
+              <select id="filter-cost" class="input">
+                <option value="">Any</option>
+                <option value="free">Free</option>
+                <option value="freemium">Freemium</option>
+                <option value="subscription">Subscription</option>
+                <option value="open-source">Open-source</option>
+              </select>
+            </div>
+            <div style="margin-top:12px">
+              <button id="btn-recommend" class="button">Recommend</button>
+            </div>
+          </div>
+
+          <div id="radial-wrap">
+            <!-- SVG radial -->
+            <svg id="radial-svg" width="440" height="440"></svg>
+            <div class="small" style="text-align:center; margin-top:6px">Drag points to set priorities</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="recommend-results" style="margin-top:14px"></div>
+    </section>
+
+    <section id="view-vendor" class="view hidden">
+      <h2>Vendor / Feedback</h2>
+      <div id="feedback-list"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>Prototype — AI Tool Recommender</div>
+    <div class="small">For demo only — data is stored locally in your browser.</div>
+  </footer>
+
+  <script src="recommender.js"></script>
+</body>
+</html>
