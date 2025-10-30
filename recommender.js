@@ -242,7 +242,15 @@ function renderRecommendations(list){
     left.innerHTML = `<div style="font-weight:700">${r.name} <span class="small">(${r.score})</span></div>
       <div class="small">${r.description}</div>
       <div class="small">${r.rationale}</div>
-      <div style="margin-top:8px"><strong>Action checklist:</strong><ol>${r.checklist.map(s=>`<li class="small">${s}</li>`).join('')}</ol></div>`;
+      <div style="margin-top:8px"><strong>Action checklist:</strong><ol>${r.checklist.map(s=>`<li class="small">${s}</li>`).join('')}</ol></div>
+        <div style="margin-top:8px">
+    <strong>Agentic Tip:</strong>
+    <div class="small" style="color:#374151;">
+      Run a short pilot using this tool for 1–2 weeks focusing on one measurable goal (e.g., reduce admin time by 30%).
+      Track performance and document lessons learned for your next iteration.
+    </div>
+  </div>
+  `;
     const right = document.createElement('div'); right.style.textAlign='right';
     right.innerHTML = `<a class="tool-link" href="${r.url}" target="_blank" rel="noopener">Open tool site</a>
       <div style="margin-top:8px">
