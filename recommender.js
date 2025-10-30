@@ -283,8 +283,19 @@ function submitFeedback(tool_id){
   const userHas = fb.some(f=> f.user_id === profile.id && f.tool_id !== tool_id);
   if(!userHas) pts += 20;
   profile.points = pts; saveProfile(profile);
-  alert('Thanks — feedback saved and points updated.');
+  $('feedback-text').value = '';
+  alert('Thank you for your feedback!');
   renderFeedbackList();
+
+  // --- Promo code reward (added)
+  const issued = JSON.parse(localStorage.getItem('promo_issued')||'{}');
+  const threshold = 50; // points needed for promo
+  if ((profile.points || 0) >= threshold && !issued[profile.id]) {
+    const code = 'PROMO-' + Math.random().toString(36).substring(2,8).toUpperCase();
+    issued[profile.id] = { code, awarded: new Date().toISOString() };
+    localStorage.setItem('promo_issued', JSON.stringify(issued));
+    alert(`🎉 Congrats! You earned a promo code: ${code}`);
+  }
 }
 
 // --- Vendor feedback view
