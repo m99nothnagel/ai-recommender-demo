@@ -308,6 +308,7 @@ function submitFeedback(tool_id){
     issued[profile.id] = { code, awarded: new Date().toISOString() };
     localStorage.setItem('promo_issued', JSON.stringify(issued));
     alert(`🎉 Congrats! You earned a promo code: ${code}`);
+    showPromoModal(code);
   }
 }
 
@@ -374,4 +375,31 @@ function wireRecommend(){
       }
     };
   }
+  // --- Promo Modal UI helper ---
+function showPromoModal(code){
+  const modal = document.getElementById('promo-modal');
+  const txt = document.getElementById('promo-code-text');
+  if(!modal || !txt) return; // safety check
+
+  // fill in the code and show modal
+  txt.innerText = code;
+  modal.style.display = 'flex';
+
+  // close button
+  const closeBtn = document.getElementById('promo-close');
+  if(closeBtn){
+    closeBtn.onclick = () => { modal.style.display = 'none'; };
+  }
+
+  // copy button
+  const copyBtn = document.getElementById('promo-copy');
+  if(copyBtn){
+    copyBtn.onclick = () => {
+      if (navigator.clipboard){
+        navigator.clipboard.writeText(code);
+        alert('Promo code copied to clipboard!');
+      }
+    };
+  }
+}
 })();
