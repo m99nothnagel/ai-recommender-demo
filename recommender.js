@@ -362,4 +362,16 @@ function wireRecommend(){
   // prepare radial drawing when select opened - draw once
   drawRadial();
   renderFeedbackList();
+    // --- Reset Demo Button Handler (inside init IIFE)
+  const resetBtn = document.getElementById('btn-reset');
+  if (resetBtn) {
+    resetBtn.onclick = () => {
+      if (confirm('Clear demo data (localStorage) and reload?')) {
+        localStorage.removeItem('profile');
+        localStorage.removeItem('feedback');
+        localStorage.removeItem('promo_issued');
+        location.reload();
+      }
+    };
+  }
 })();
