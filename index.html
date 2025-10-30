@@ -129,5 +129,70 @@
   </footer>
 
   <script src="recommender.js"></script>
+  <!-- Chat assistant widget (Startup Advisor) -->
+<div id="chat-box" style="position:fixed; right:18px; bottom:18px; width:340px; max-width:92%; z-index:999;">
+  <div id="chat-header" class="card" style="padding:8px; font-weight:700; cursor:default">Startup Advisor</div>
+  <div id="chat-messages" class="card" style="height:260px; overflow:auto; margin-top:6px; padding:8px; background:#fff"></div>
+  <div style="display:flex; gap:6px; margin-top:6px;">
+    <input id="chat-input" class="input" placeholder="Ask about validating, tools, pilot plans..." style="flex:1" />
+    <button id="chat-send" class="button">Ask</button>
+  </div>
+</div>
+
+<script>
+  // Chat UI logic (client)
+  document.addEventListener('DOMContentLoaded', () => {
+    const sendBtn = document.getElementById('chat-send');
+    const input = document.getElementById('chat-input');
+    const messages = document.getElementById('chat-messages');
+
+    function appendUser(text){
+      const el = document.createElement('div');
+      el.style.textAlign = 'right';
+      el.innerHTML = '<div style="display:inline-block;background:#e6f0ff;padding:6px;border-radius:8px;margin-bottom:6px;">' + escapeHtml(text) + '</div>';
+      messages.appendChild(el); messages.scrollTop = messages.scrollHeight;
+    }
+    function appendBot(text){
+      const el = document.createElement('div');
+      el.innerHTML = '<div style="display:inline-block;background:#fff;padding:8px;border-radius:8px;border:1px solid #e6e7eb;margin-bottom:6px;">' + escapeHtml(text) + '</div>';
+      messages.appendChild(el); messages.scrollTop = messages.scrollHeight;
+    }
+    function appendWaiting(){
+      const el = document.createElement('div'); el.id='bot-wait';
+      el.innerHTML = '<div style="display:inline-block;background:#f3f4f6;padding:6px;border-radius:8px;margin-bottom:6px">...</div>';
+      messages.appendChild(el); messages.scrollTop = messages.scrollHeight;
+    }
+    function removeWaiting(){ const w = document.getElementById('bot-wait'); if (w) w.remove(); }
+
+    sendBtn.onclick = async () => {
+      const msg = input.value.trim();
+      if (!msg) return;
+      appendUser(msg);
+      input.value='';
+      appendWaiting();
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ message: msg })
+        });
+        const j = await res.json();
+        removeWaiting();
+        if (j.reply) appendBot(j.reply);
+        else appendBot('No response from assistant.');
+      } catch (e) {
+        removeWaiting();
+        appendBot('Error contacting assistant.');
+        console.error('Chat error', e);
+      }
+    };
+
+    input.addEventListener('keydown', (e)=> { if (e.key === 'Enter') sendBtn.click(); });
+
+    function escapeHtml(s) {
+      return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  });
+</script>
 </body>
 </html>
